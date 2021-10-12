@@ -41,13 +41,13 @@ const buildSetup = () => {
 
 const getRarityWeight = (_str) => {
   let nameWithoutExtension = _str.slice(0, -4);
-  var nameWithoutWeight = Number(
+  var weightWithoutName = Number(
     nameWithoutExtension.split(rarityDelimiter).pop()
   );
-  if (isNaN(nameWithoutWeight)) {
-    nameWithoutWeight = 0;
+  if (isNaN(weightWithoutName)) {
+    weightWithoutName = 0;
   }
-  return nameWithoutWeight;
+  return weightWithoutName;
 };
 
 const cleanDna = (_str) => {
@@ -58,13 +58,13 @@ const cleanDna = (_str) => {
 const cleanName = (_str) => {
   let nameWithoutExtension = _str.slice(0, -4);
   var nameWithoutWeight = nameWithoutExtension.split(rarityDelimiter).shift();
-  return nameWithoutWeight;
+  return nameWithoutWeight; 
 };
 
 const getElements = (path) => {
   return fs
-    .readdirSync(path)
-    .filter((item) => !/(^|\/)\.[^\/\.]/g.test(item))
+    .readdirSync(path)                // read all the files from the path
+    .filter((item) => !/(^|\/)\.[^\/\.]/g.test(item))  // remove all hidden files from the result
     .map((i, index) => {
       return {
         id: index,
