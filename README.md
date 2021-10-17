@@ -1,1 +1,1 @@
-#Notice: forked from HashLips project
+Notice: forked from HashLips project
