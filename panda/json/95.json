@@ -1,0 +1,35 @@
+{
+  "dna": "6f62cd2db5a7f0e21c6a7ed0c7fab6ddb2be0356",
+  "name": "The Merge Panda",
+  "description": "The Merge Panda for 2021 SHANGHAI ETHEREUM MEETUP",
+  "image": "ipfs://QmT34Pv1tnFVD9zvsn9jfYuJ1LkanepnTXq6kSz5AC9ELB/95.png",
+  "edition": 95,
+  "date": 1634900397575,
+  "attributes": [
+    {
+      "trait_type": "background",
+      "value": "bg4"
+    },
+    {
+      "trait_type": "panda",
+      "value": "panda"
+    },
+    {
+      "trait_type": "eye",
+      "value": "eye5"
+    },
+    {
+      "trait_type": "body",
+      "value": "body2"
+    },
+    {
+      "trait_type": "mouth",
+      "value": "mouth1"
+    },
+    {
+      "trait_type": "ear",
+      "value": "ear4"
+    }
+  ],
+  "compiler": "HashLips Art Engine"
+}

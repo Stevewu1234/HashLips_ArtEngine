@@ -13,6 +13,8 @@ const getIndividualJsonFiles = () => {
     .filter((item) => /^[0-9]{1,6}.json/g.test(item));
 };
 
+console.log(getIndividualJsonFiles())
+
 // Identify json files
 const jsonFiles = getIndividualJsonFiles();
 console.log(`Found ${jsonFiles.length} json files in "${jsonDir}" to process`);

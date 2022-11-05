@@ -11,7 +11,8 @@ const { createCanvas, loadImage } = require(path.join(
 ));
 const buildDir = path.join(basePath, "/build");
 const layersDir = path.join(basePath, "/layers");
-console.log(path.join(basePath, "/src/config.js"));
+
+
 const {
   format,
   baseUri,
@@ -31,6 +32,7 @@ var attributesList = [];
 var dnaList = [];
 
 const buildSetup = () => {
+
   if (fs.existsSync(buildDir)) {
     fs.rmdirSync(buildDir, { recursive: true });
   }
@@ -76,17 +78,17 @@ const getElements = (path) => {
     });
 };
 
-const layersSetup = (layersOrder) => {
+const layersSetup = (layersOrder, subDir) => {
   const layers = layersOrder.map((layerObj, index) => ({
     id: index,
     name: layerObj.name,
-    elements: getElements(`${layersDir}/${layerObj.name}/`),
-    blendMode:
-      layerObj["blend"] != undefined ? layerObj["blend"] : "source-over",
+    elements: getElements(`${layersDir}/${subDir}/${layerObj.name}/`),
+    blendMode: layerObj["blend"] != undefined ? layerObj["blend"] : "source-over",
     opacity: layerObj["opacity"] != undefined ? layerObj["opacity"] : 1,
   }));
   return layers;
 };
+
 
 const saveImage = (_editionCount) => {
   fs.writeFileSync(
@@ -110,7 +112,7 @@ const addMetadata = (_dna, _edition) => {
   let dateTime = Date.now();
   let tempMetadata = {
     dna: sha1(_dna.join("")),
-    name: `#${_edition}`,
+    name: `Theta Fish`,
     description: description,
     image: `${baseUri}/${_edition}.png`,
     edition: _edition,
@@ -147,8 +149,8 @@ const drawElement = (_renderObject) => {
 
 const constructLayerToDna = (_dna = [], _layers = []) => {
   let mappedDnaToLayers = _layers.map((layer, index) => {
-    let selectedElement = layer.elements.find(
-      (e) => e.id == cleanDna(_dna[index])
+    let selectedElement = layer.elements.find(  // layer.elements have multiple elements. Then the find() will select the one whose id is matching the dna
+      (e) => e.id == cleanDna(_dna[index])  // _dna[index] = ${layer.elements[i].id}:${layer.elements[i].filename}
     );
     return {
       name: layer.name,
@@ -165,19 +167,41 @@ const isDnaUnique = (_DnaList = [], _dna = []) => {
   return foundDna == undefined ? true : false;
 };
 
+
+// add new demand: body and hand one to one
 const createDna = (_layers) => {
   let randNum = [];
+  let bodyRandom = 0;
   _layers.forEach((layer) => {
     var totalWeight = 0;
     layer.elements.forEach((element) => {
       totalWeight += element.weight;
     });
+
+
+    // if match hand layer, that get the id of body to select the corresponding hand id
+    if(layer.name.includes('hand')) {
+      for (var i = 0; i < layer.elements.length; i++) {
+        if(layer.elements[i].name.substr(10) === bodyRandom.toString()) {
+          // console.log(bodyRandom, layer.elements[i].filename);
+          bodyRandom = 0;
+          return randNum.push(`${layer.elements[i].id}:${layer.elements[i].filename}`)
+        }
+      }
+    }
+  
+
     // number between 0 - totalWeight
     let random = Math.floor(Math.random() * totalWeight);
     for (var i = 0; i < layer.elements.length; i++) {
+
       // subtract the current weight from the random weight until we reach a sub zero value.
       random -= layer.elements[i].weight;
       if (random < 0) {
+        
+        if(layer.elements[i].name.includes('body')) {
+          bodyRandom = layer.elements[i].name.substr(10);
+        }
         return randNum.push(
           `${layer.elements[i].id}:${layer.elements[i].filename}`
         );
@@ -204,7 +228,7 @@ const saveMetaDataSingleFile = (_editionCount) => {
   );
 };
 
-function shuffle(array) {
+function shuffle(array) {   // disrupted array
   let currentIndex = array.length,
     randomIndex;
   while (currentIndex != 0) {
@@ -225,7 +249,7 @@ const startCreating = async () => {
   let abstractedIndexes = [];
   for (
     let i = 1;
-    i <= layerConfigurations[layerConfigurations.length - 1].growEditionSizeTo;
+    i <= layerConfigurations[layerConfigurations.length - 1].totalEdition;
     i++
   ) {
     abstractedIndexes.push(i);
@@ -237,55 +261,65 @@ const startCreating = async () => {
     ? console.log("Editions left to create: ", abstractedIndexes)
     : null;
   while (layerConfigIndex < layerConfigurations.length) {
-    const layers = layersSetup(
-      layerConfigurations[layerConfigIndex].layersOrder
-    );
-    while (
-      editionCount <= layerConfigurations[layerConfigIndex].growEditionSizeTo
-    ) {
-      let newDna = createDna(layers);
-      if (isDnaUnique(dnaList, newDna)) {
-        let results = constructLayerToDna(newDna, layers);
-        let loadedElements = [];
 
-        results.forEach((layer) => {
-          loadedElements.push(loadLayerImg(layer));
-        });
+    // add customized logic to generate a new generativeArt
+    for(let i = 1; i <= 3; i++ ) {
+      console.log(`dealing with subDir: classify${i}`)
+      const subDir = `classify${i}`;
+      const layersOrder = layerConfigurations[layerConfigIndex].layersOrder[i-1]
 
-        await Promise.all(loadedElements).then((renderObjectArray) => {
-          debugLogs ? console.log("Clearing canvas") : null;
-          ctx.clearRect(0, 0, format.width, format.height);
-          if (background.generate) {
-            drawBackground();
-          }
-          renderObjectArray.forEach((renderObject) => {
-            drawElement(renderObject);
+      const layers = layersSetup(
+        layersOrder, subDir
+      );
+      while (
+        editionCount <= layerConfigurations[layerConfigIndex].growEditionSizeTo
+      ) {
+        let newDna = createDna(layers);
+        if (isDnaUnique(dnaList, newDna)) {
+          let results = constructLayerToDna(newDna, layers);
+          let loadedElements = [];
+  
+          results.forEach((layer) => {
+            loadedElements.push(loadLayerImg(layer));
           });
-          debugLogs
-            ? console.log("Editions left to create: ", abstractedIndexes)
-            : null;
-          saveImage(abstractedIndexes[0]);
-          addMetadata(newDna, abstractedIndexes[0]);
-          saveMetaDataSingleFile(abstractedIndexes[0]);
-          console.log(
-            `Created edition: ${abstractedIndexes[0]}, with DNA: ${sha1(
-              newDna.join("")
-            )}`
-          );
-        });
-        dnaList.push(newDna);
-        editionCount++;
-        abstractedIndexes.shift();
-      } else {
-        console.log("DNA exists!");
-        failedCount++;
-        if (failedCount >= uniqueDnaTorrance) {
-          console.log(
-            `You need more layers or elements to grow your edition to ${layerConfigurations[layerConfigIndex].growEditionSizeTo} artworks!`
-          );
-          process.exit();
+  
+          await Promise.all(loadedElements).then((renderObjectArray) => {  // renderObjectArray = [_layer, image]
+            debugLogs ? console.log("Clearing canvas") : null;
+            ctx.clearRect(0, 0, format.width, format.height);
+            if (background.generate) {
+              drawBackground();
+            }
+            renderObjectArray.forEach((renderObject) => {
+              drawElement(renderObject);
+            });
+            debugLogs
+              ? console.log("Editions left to create: ", abstractedIndexes)
+              : null;
+            saveImage(abstractedIndexes[0]);   // abstractedIndexes[0] = edition
+            addMetadata(newDna, abstractedIndexes[0]);
+            saveMetaDataSingleFile(abstractedIndexes[0]);
+            console.log(
+              `Created edition: ${abstractedIndexes[0]}, with DNA: ${sha1(
+                newDna.join("")
+              )}`
+            );
+          });
+          dnaList.push(newDna);
+          editionCount++;
+          abstractedIndexes.shift();
+        } else {
+          console.log("DNA exists!");
+          failedCount++;
+          if (failedCount >= uniqueDnaTorrance) {
+            console.log(
+              `You need more layers or elements to grow your edition to ${layerConfigurations[layerConfigIndex].growEditionSizeTo} artworks!`
+            );
+            process.exit();
+          }
         }
       }
+      
+      editionCount = 1;
     }
     layerConfigIndex++;
   }
