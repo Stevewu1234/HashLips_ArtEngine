@@ -12,8 +12,8 @@ const baseUri = "ipfs://QmT34Pv1tnFVD9zvsn9jfYuJ1LkanepnTXq6kSz5AC9ELB";
 
 const layerConfigurations = [
   {
-    totalEdition: 10,
-    growEditionSizeTo: 3,
+    totalEdition: 9999,
+    growEditionSizeTo: 3333,
     layersOrder: [[
       { name: "1.background" },
       { name: "2.bedsheet"},
